@@ -1,0 +1,63 @@
+﻿1. Launch 3 instances
+
+2. Master : sudo apt-get install nfs-kernel-server nfs-common
+
+3. sudo mkdir /mpishare
+
+4. sudo -R 777 /mpishare
+
+5. add folloing to /etc/exports
+========
+/mpishare slave1 private ip(rw,sync,no_root_squash,no_all_squash)
+/mpishare slave2 private ip(rw,sync,no_root_squash,no_all_squash)
+========
+
+6. sudo apt-get install nfs-common (slaves)
+
+7. sudo mkdir /mpishare
+
+8. sudo chmod -R 700 /mpishare/
+
+9. sudo mount -t nfs master private ip:/mpishare /mpishare/ (master security group要開)
+
+10. master ssh-keygen
+
+11. sudo chmod 700 /etc/hosts
+
+12. sudo vim /etc/hosts
+===master
+[Slave1 IP] Slave1
+[Slave2 IP] Slave2
+===slave
+[Master IP] Master
+===
+
+13.sudo vim /etc/ssh/sshd_config (slave)
+    PasswordAuthentication yes
+
+14.sudo service ssh restart(slave)
+
+15.sudo passwd ubuntu (slave)
+
+16.sudo scp ~/.ssh/id_rsa.pub ubuntu@Slave1:~/.ssh/a.pub
+    sudo scp ~/.ssh/id_rsa.pub ubuntu@Slave2:~/.ssh/a.pub
+
+17. cat ~/.ssh/a.pub >> ~/.ssh/authorized_keys (slave)
+
+18.sudo chmod 600 ~/.ssh/authorized_keys
+
+19.sudo vim /etc/ssh/sshd_config (slave)
+    PasswordAuthentication no
+
+20.sudo service ssh restart(slave)
+
+21.sudo chmod 774 /etc/hosts(master)
+
+22.sudo apt-get install mpich(三台都要) //sudo apt-get update
+
+23.將hello上傳至mpishare並編譯
+    mpicc mpi_hello.c -o mpi_hello
+
+24. slave : chmod 777 /etc/hosts
+
+25. mpiexec -n 3 -host Master,Slave1,Slave2 ./mpi_hello
